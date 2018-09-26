@@ -1,0 +1,159 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+from __future__ import print_function, unicode_literals # We require Python 2.6 or later
+from string import Template
+import random
+import string
+import os
+import sys
+import argparse
+import subprocess
+import shutil
+from io import open
+
+if sys.version_info[:3][0] == 2:
+    import ConfigParser as ConfigParser
+    import StringIO as StringIO
+
+if sys.version_info[:3][0] == 3:
+    import configparser as ConfigParser
+    import io as StringIO
+
+base_dir = os.path.dirname(__file__)
+config_dir = os.path.join(base_dir, "config")
+templates_dir = os.path.join(base_dir, "templates")
+
+def prep_conf_dir(root, name):
+    absolute_path = os.path.join(root, name)
+    if not os.path.exists(absolute_path):
+        os.makedirs(absolute_path)
+    return absolute_path
+
+def render(src, dest, **kw):
+    if not os.path.exists(os.path.dirname(dest)):
+        os.makedirs(os.path.dirname(dest))
+    t = Template(open(src, 'r').read())
+    with open(dest, 'w') as f:
+        f.write(t.substitute(**kw))
+    os.chmod(dest, 0755)
+    print("Generated configuration file: %s" % dest)
+
+def delfile(src):
+    if os.path.isfile(src):
+        try:
+            os.remove(src)
+            print("Clearing the configuration file: %s" % src)
+        except:
+            pass
+    elif os.path.isdir(src):
+        for item in os.listdir(src):
+            itemsrc=os.path.join(src,item)
+            delfile(itemsrc)
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--conf', dest='cfgfile', default=base_dir+'/devops.cfg',type=str,help="the path of DevOps configuration file")
+args = parser.parse_args()
+
+delfile(config_dir)
+
+FNULL = open(os.devnull, 'w')
+
+#Read Configurations
+conf = StringIO.StringIO()
+conf.write("[configuration]\n")
+conf.write(open(args.cfgfile).read())
+conf.seek(0, os.SEEK_SET)
+rcp = ConfigParser.RawConfigParser()
+rcp.readfp(conf)
+
+gogits_host_ip = rcp.get("configuration", "gogits_host_ip")
+gogits_host_port = rcp.get("configuration", "gogits_host_port")
+gogits_ssh_port = rcp.get("configuration", "gogits_ssh_port")
+
+jenkins_host_ip = rcp.get("configuration", "jenkins_host_ip")
+jenkins_host_port = rcp.get("configuration", "jenkins_host_port")
+jenkins_node_ip = rcp.get("configuration", "jenkins_node_ip")
+jenkins_node_ssh_port = rcp.get("configuration", "jenkins_node_ssh_port")
+jenkins_node_username = rcp.get("configuration", "jenkins_node_username")
+jenkins_node_password = rcp.get("configuration", "jenkins_node_password")
+jenkins_node_volume = rcp.get("configuration", "jenkins_node_volume")
+
+kvm_registry_size = rcp.get("configuration", "kvm_registry_size")
+kvm_registry_port = rcp.get("configuration", "kvm_registry_port")
+kvm_toolkits_path = rcp.get("configuration", "kvm_toolkits_path")
+
+########
+
+#Setting Directory
+daemonworker_config_dir = os.path.join(config_dir,"daemonworker")
+if not os.path.exists(daemonworker_config_dir):
+    os.makedirs(daemonworker_config_dir)
+if not os.path.exists(os.path.join(daemonworker_config_dir, "kvm")):
+    os.makedirs(os.path.join(daemonworker_config_dir, "kvm"))
+if not os.path.exists(os.path.join(daemonworker_config_dir, "kvmregistry")):
+    os.makedirs(os.path.join(daemonworker_config_dir, "kvmregistry"))
+
+proxy_config_dir = os.path.join(config_dir, "proxy")
+if not os.path.exists(proxy_config_dir):
+    os.makedirs(proxy_config_dir)
+
+jenkins_config_dir = os.path.join(config_dir, "jenkins")
+if not os.path.exists(jenkins_config_dir):
+    os.makedirs(jenkins_config_dir)
+
+gogits_config_dir = os.path.join(config_dir, "gogits")
+if not os.path.exists(gogits_config_dir):
+    os.makedirs(gogits_config_dir)
+
+#Render Configure File
+render(os.path.join(templates_dir, "daemonworker", "config.ini"),
+        os.path.join(daemonworker_config_dir, "config.ini"),
+        gogits_host_ip=gogits_host_ip,
+        gogits_host_port=gogits_host_port,
+        jenkins_host_ip=jenkins_host_ip,
+        jenkins_host_port=jenkins_host_port,
+        jenkins_node_ip=jenkins_node_ip,
+        jenkins_node_ssh_port=jenkins_node_ssh_port,
+        jenkins_node_username=jenkins_node_username,
+        jenkins_node_password=jenkins_node_password,
+        jenkins_node_volume=jenkins_node_volume,
+        kvm_registry_size=kvm_registry_size,
+        kvm_registry_port=kvm_registry_port,
+        kvm_toolkits_path=kvm_toolkits_path)
+
+
+if os.path.exists(os.path.join(daemonworker_config_dir, "kvm")):
+    shutil.rmtree(os.path.join(daemonworker_config_dir, "kvm"))
+shutil.copytree(os.path.join(templates_dir, "daemonworker", "kvm"), os.path.join(daemonworker_config_dir, "kvm"))
+
+if os.path.exists(os.path.join(daemonworker_config_dir, "kvmregistry")):
+    shutil.rmtree(os.path.join(daemonworker_config_dir, "kvmregistry"))
+
+subprocess.call("docker run --rm -v `pwd`/templates/daemonworker/kvmregistry:/go/src -w=/go/src golang:1.9.6 go build -o kvmregistry", shell=True)
+os.mkdir(os.path.join(daemonworker_config_dir, "kvmregistry"))
+shutil.copyfile(os.path.join(templates_dir, "daemonworker", "kvmregistry", "kvmregistry"), os.path.join(daemonworker_config_dir, "kvmregistry", "kvmregistry"))
+shutil.copyfile(os.path.join(templates_dir, "daemonworker", "kvmregistry", "affinity.ini"), os.path.join(daemonworker_config_dir, "kvmregistry", "affinity.ini"))
+shutil.copyfile(os.path.join(templates_dir, "daemonworker", "kvmregistry", "register.sh"), os.path.join(daemonworker_config_dir, "kvmregistry", "register.sh"))
+shutil.copyfile(os.path.join(templates_dir, "daemonworker", "kvmregistry", "release.sh"), os.path.join(daemonworker_config_dir, "kvmregistry", "release.sh"))
+
+
+render(os.path.join(templates_dir, "proxy", "nginx.http.conf"),
+        os.path.join(proxy_config_dir, "nginx.conf"))
+
+render(os.path.join(templates_dir, "jenkins", "env"),
+        os.path.join(jenkins_config_dir, "env"),
+        jenkins_host_ip=jenkins_host_ip,
+        jenkins_host_port=jenkins_host_port,
+        jenkins_node_ip=jenkins_node_ip,
+        jenkins_node_ssh_port=jenkins_node_ssh_port,
+        jenkins_node_username=jenkins_node_username,
+        jenkins_node_password=jenkins_node_password,
+        jenkins_node_volume=jenkins_node_volume)
+
+render(os.path.join(templates_dir, "gogits", "app.ini"),
+        os.path.join(gogits_config_dir, "conf", "app.ini"),
+        gogits_host_ip=gogits_host_ip,
+        gogits_host_port=gogits_host_port,
+        gogits_ssh_port=gogits_ssh_port)
+
+print("The configuration files are ready, please use docker-compose to start the service.")

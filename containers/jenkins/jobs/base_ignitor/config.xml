@@ -1,0 +1,115 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.7.3">
+      <useBuildBlocker>false</useBuildBlocker>
+      <blockLevel>GLOBAL</blockLevel>
+      <scanQueueFor>DISABLED</scanQueueFor>
+      <blockingJobs></blockingJobs>
+    </hudson.plugins.buildblocker.BuildBlockerProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>F00</name>
+          <description>Set KVM registry URL</description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>F01</name>
+          <description>Set config URL</description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>master</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <javaposse.jobdsl.plugin.ExecuteDslScripts plugin="job-dsl@1.69">
+      <scriptText>def registry_url = binding.variables.get(&quot;F00&quot;)
+def config_url = binding.variables.get(&quot;F01&quot;)
+
+freeStyleJob(&quot;ignitor&quot;) {
+  label(&apos;slave&apos;)
+  blockOn(&quot;base&quot;) {
+    blockLevel(&apos;NODE&apos;)
+    scanQueueFor(&apos;ALL&apos;)
+  }
+  triggers {
+    genericTrigger {
+      genericVariables {
+        genericVariable {
+          key(&quot;action&quot;)
+          value(&quot;\$.action&quot;)
+          expressionType(&quot;JSONPath&quot;)
+          regexpFilter(&quot;&quot;)
+          defaultValue(&quot;&quot;)
+        }
+        genericVariable {
+          key(&quot;group_name&quot;)
+          value(&quot;\$.group_name&quot;)
+          expressionType(&quot;JSONPath&quot;)
+          regexpFilter(&quot;&quot;)
+          defaultValue(&quot;&quot;)
+        }
+        genericVariable {
+          key(&quot;username&quot;)
+          value(&quot;\$.username&quot;)
+          expressionType(&quot;JSONPath&quot;)
+          regexpFilter(&quot;&quot;)
+          defaultValue(&quot;&quot;)
+        }
+        genericVariable {
+          key(&quot;affinity&quot;)
+          value(&quot;\$.affinity&quot;)
+          expressionType(&quot;JSONPath&quot;)
+          regexpFilter(&quot;&quot;)
+          defaultValue(&quot;&quot;)
+        }
+      }
+      printContributedVariables(true)
+      printPostContent(true)
+      regexpFilterText(&quot;\$action&quot;)
+      regexpFilterExpression(&quot;^(push|pull_request)\$&quot;)
+    }
+  }
+  environmentVariables {
+    env(&quot;config_url&quot;, &quot;$config_url&quot;)
+  }
+  parameters {
+    stringParam(&quot;config_url&quot;, &quot;$config_url&quot;, &quot;Set config URL.&quot;)
+  }
+  steps {
+    shell{
+      command(&quot;&quot;&quot;#!/bin/bash
+curl &quot;${registry_url}/trigger-script?name=register.sh&amp;arg=\${config_url},\${group_name},\${username},\${affinity}&quot;
+&quot;&quot;&quot;)
+    }
+  }
+}</scriptText>
+      <usingScriptText>true</usingScriptText>
+      <sandbox>false</sandbox>
+      <ignoreExisting>false</ignoreExisting>
+      <ignoreMissingFiles>false</ignoreMissingFiles>
+      <failOnMissingPlugin>false</failOnMissingPlugin>
+      <unstableOnDeprecation>false</unstableOnDeprecation>
+      <removedJobAction>IGNORE</removedJobAction>
+      <removedViewAction>IGNORE</removedViewAction>
+      <removedConfigFilesAction>IGNORE</removedConfigFilesAction>
+      <lookupStrategy>JENKINS_ROOT</lookupStrategy>
+    </javaposse.jobdsl.plugin.ExecuteDslScripts>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

@@ -1,0 +1,123 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.7.3">
+      <useBuildBlocker>false</useBuildBlocker>
+      <blockLevel>GLOBAL</blockLevel>
+      <scanQueueFor>DISABLED</scanQueueFor>
+      <blockingJobs></blockingJobs>
+    </hudson.plugins.buildblocker.BuildBlockerProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>F00</name>
+          <description>Set job name.</description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>F01</name>
+          <description>Set config URL.</description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>F02</name>
+          <description>Set Jenkins master URL.</description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>F03</name>
+          <description>Set KVM registry URL.</description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>master</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <javaposse.jobdsl.plugin.ExecuteDslScripts plugin="job-dsl@1.69">
+      <scriptText>def job_name = binding.variables.get(&quot;F00&quot;)
+def config_url = binding.variables.get(&quot;F01&quot;)
+def jenkins_master_url = binding.variables.get(&quot;F02&quot;)
+def kvm_registry_url = binding.variables.get(&quot;F03&quot;)
+
+pipelineJob(job_name) {
+  environmentVariables {
+    env(&quot;jenkins_master_url&quot;, &quot;$jenkins_master_url&quot;)
+    env(&quot;kvm_registry_url&quot;, &quot;$kvm_registry_url&quot;)
+    env(&quot;group_name&quot;, &quot;$job_name&quot;)
+    env(&quot;config_url&quot;, &quot;$config_url&quot;)
+  }
+  blockOn(&quot;ignitor&quot;) {
+    blockLevel(&apos;NODE&apos;)
+    scanQueueFor(&apos;ALL&apos;)
+  }
+  parameters {
+    stringParam(&quot;jenkins_master_url&quot;, &quot;$jenkins_master_url&quot;, &quot;Set Jenkins master URL.&quot;)
+    stringParam(&quot;kvm_registry_url&quot;, &quot;$kvm_registry_url&quot;, &quot;Set KVM registry URL.&quot;)
+    stringParam(&quot;config_url&quot;, &quot;$config_url&quot;, &quot;Set config URL.&quot;)
+    stringParam(&quot;node_name&quot;, &quot;&quot;, &quot;Set node name.&quot;)
+    stringParam(&quot;group_name&quot;, &quot;$job_name&quot;, &quot;Set group name.&quot;)
+    stringParam(&quot;username&quot;, &quot;&quot;, &quot;Set repo&apos;s username.&quot;)
+  }
+  definition {
+    cps {
+      script(&apos;&apos;&apos;
+properties([
+  parameters([
+    string(defaultValue: &quot;&quot;, description: &quot;Set node name&quot;, name: &quot;node_name&quot;, trim: true),
+    string(defaultValue: &quot;$config_url&quot;, description: &quot;Set config URL&quot;, name: &quot;config_url&quot;, trim: true),
+    string(defaultValue: &quot;&quot;, description: &quot;Set group name&quot;, name: &quot;group_name&quot;, trim: true),
+    string(defaultValue: &quot;&quot;, description: &quot;Set repo\&apos;s username&quot;, name: &quot;username&quot;, trim: true)
+  ])
+])
+
+node(node_name) {
+  try{
+    stage(&quot;Prepare and execute building ...&quot;) {
+      sh \&apos;\&apos;\&apos;
+         curl &quot;${config_url}?repo_name=${group_name}&amp;username=${username}&quot; -o /root/env.cfg &amp;&amp; source /root/env.cfg
+         curl -X PUT &quot;${kvm_registry_url}/update-build?kvm_name=${NODE_NAME}&amp;job_name=${group_name}&amp;build_id=${BUILD_NUMBER}&quot;
+         git clone --single-branch -b ${base_repo_branch} ${base_repo_clone_url} ${WORKSPACE}
+         travis_yml_script.rb . workspace=${WORKSPACE}
+      \&apos;\&apos;\&apos;
+    }
+  } finally {
+    sh \&apos;\&apos;\&apos;
+      curl &quot;${kvm_registry_url}/release-node?job_name=${group_name}&amp;build_id=${BUILD_NUMBER}&quot;
+      curl &quot;${kvm_registry_url}/trigger-script?name=release.sh&amp;arg=${jenkins_master_url},${NODE_NAME}&quot;
+    \&apos;\&apos;\&apos;
+  }
+}
+      &apos;&apos;&apos;)
+    }
+  }
+}</scriptText>
+      <usingScriptText>true</usingScriptText>
+      <sandbox>false</sandbox>
+      <ignoreExisting>false</ignoreExisting>
+      <ignoreMissingFiles>false</ignoreMissingFiles>
+      <failOnMissingPlugin>false</failOnMissingPlugin>
+      <unstableOnDeprecation>false</unstableOnDeprecation>
+      <removedJobAction>IGNORE</removedJobAction>
+      <removedViewAction>IGNORE</removedViewAction>
+      <removedConfigFilesAction>IGNORE</removedConfigFilesAction>
+      <lookupStrategy>JENKINS_ROOT</lookupStrategy>
+    </javaposse.jobdsl.plugin.ExecuteDslScripts>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>
