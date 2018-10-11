@@ -1,16 +1,15 @@
 # User Guide
 ## Wand at a Glance
-***
 Wand composed with two key components of which Gogs and Jenkins setup a typical DevOps workflow automatically.
 
 ## Prerequisites
-***
+
 * Docker 17.09 or newer versions
 * docker-compose 1.17 or newer versions
 * CentOS 7.4 or newer versions
 
 ## Prepartion Steps
-***
+
 ### Get Source Code
 
  * Clone repository from Github
@@ -75,8 +74,8 @@ sh prepare
 docker-compose up -d
 ```
 
-## Basic Operation
-***
+## Basic Instruction
+
 ### Visit Gogs in browser
 
 * Locate URL via __*<gogits_host_ip>:<gogits_host_port>*__
@@ -151,7 +150,7 @@ git push origin master
 ```
 
 ## Jenkins CI Portion
-***
+
 ### Visit Jenkins master in browser
 
 * Locate Jenkins in brower via __*<jenkins_host_ip>:<jenkins_host_port>*__
