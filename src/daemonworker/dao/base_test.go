@@ -1,10 +1,11 @@
 package dao_test
 
 import (
-	"devopssuite/src/daemonworker/dao"
 	"log"
 	"os"
 	"testing"
+
+	"github.com/inspursoft/wand/src/daemonworker/dao"
 )
 
 func TestInitDb(t *testing.T) {

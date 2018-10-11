@@ -3,11 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"devopssuite/src/daemonworker/dao"
-	"devopssuite/src/daemonworker/gogs"
-	"devopssuite/src/daemonworker/jenkins"
-	"devopssuite/src/daemonworker/models"
-	"devopssuite/src/daemonworker/utils"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -20,6 +15,12 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/inspursoft/wand/src/daemonworker/dao"
+	"github.com/inspursoft/wand/src/daemonworker/gogs"
+	"github.com/inspursoft/wand/src/daemonworker/jenkins"
+	"github.com/inspursoft/wand/src/daemonworker/models"
+	"github.com/inspursoft/wand/src/daemonworker/utils"
 
 	_ "github.com/mattn/go-sqlite3"
 )

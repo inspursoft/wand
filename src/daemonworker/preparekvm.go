@@ -1,10 +1,11 @@
 package main
 
 import (
-	"devopssuite/src/daemonworker/utils"
 	"fmt"
 	"path/filepath"
 	"strconv"
+
+	"github.com/inspursoft/wand/src/daemonworker/utils"
 )
 
 func prepareKVMHost(nodeIP, nodeSSHPort, username, password, kvmToolkitsPath, kvmRegistrySize, kvmRegistryPort string) error {

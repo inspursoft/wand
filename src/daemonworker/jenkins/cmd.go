@@ -1,11 +1,12 @@
 package jenkins
 
 import (
-	"devopssuite/src/daemonworker/utils"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/inspursoft/wand/src/daemonworker/utils"
 )
 
 type jenkinsHandler struct {

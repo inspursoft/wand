@@ -1,8 +1,9 @@
 package dao
 
 import (
-	"devopssuite/src/daemonworker/models"
 	"log"
+
+	"github.com/inspursoft/wand/src/daemonworker/models"
 )
 
 type buildConfig struct {

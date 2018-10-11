@@ -1,11 +1,12 @@
 package gogs
 
 import (
-	"devopssuite/src/daemonworker/utils"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/inspursoft/wand/src/daemonworker/utils"
 )
 
 var maxRetryCount = 20
