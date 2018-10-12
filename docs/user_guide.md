@@ -1,7 +1,28 @@
 # User Guide
+* [Wand at a Glance](#wand-at-a-glance)
+* [Prerequisites](#prerequisites)
+* [Prepartion Steps](#preparation-steps)
+  * [Get Source Code](#get-source-code)
+  * [Building Images](#building-images)
+  * [Configure Settings](#configure-settings)
+  * [Prepare to start](#prepare-to-start)
+  * [Start Service](#start-service)
+* [Basic Instruction](#basic-instruction)
+  * [Visit Gogs in browser](#visit-gogs-in-browser)
+  * [Sign up user in Gogs](#sign-up-user-in-gogs)
+  * [Sign in Gogs](#sign-in-gogs)
+  * [Create Repository](#create-repository)
+  * [Clone Repository](#clone-repository)
+  * [Create .travis.yml file](#create-.travis.yml-file)
+  * [Submit changes to Gogs repository](#submit-changes-to-gogs-repository)
+* [Jenkins CI Portion](#jenkins-ci-portion)
+  * [Visit Jenkins master in browser](#visit-jenkins-master-in-browser)
+  * [Jenkins job runs at specified slave node](#jenkins-job-runs-at-specified-slave-node)
+  * [View Jenkins job running console log](#view-jenkins-job-running-console-log)
+
 ## Wand at a Glance
 Wand composed with two key components of which Gogs and Jenkins setup a typical DevOps workflow automatically.
-
+![Wand at a glance](./images/wand-at-a-glance.png)
 ## Prerequisites
 
 * Docker 17.09 or newer versions
