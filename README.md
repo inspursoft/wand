@@ -1,5 +1,7 @@
 # Wand
 
+![wand-magic](./docs/images/magic.jpeg)
+
 ## Introduction
 
 Wand provides quick and convenient experience for DevOps. By integrating two core components of DevOps for which Gogs and Jenkins, Wand can help you setup DevOps workflow automatically.
