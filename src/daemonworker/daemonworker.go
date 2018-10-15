@@ -5,13 +5,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -21,7 +19,6 @@ import (
 	"github.com/inspursoft/wand/src/daemonworker/jenkins"
 	"github.com/inspursoft/wand/src/daemonworker/models"
 	"github.com/inspursoft/wand/src/daemonworker/utils"
-
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -88,25 +85,23 @@ func uploadResource(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	uploadTargetPath := filepath.Join(uploadResourcePath, fullName, buildNumber)
-	if _, err := os.Stat(uploadTargetPath); os.IsNotExist(err) {
-		err = os.MkdirAll(uploadTargetPath, 0755)
+	err = utils.CheckFilePath(uploadTargetPath)
+	if err != nil {
+		log.Printf("Failed to mkdir: %s, error: %+v", uploadTargetPath, err)
+		return
+	}
+	if ext := filepath.Ext(fh.Filename); ext == ".tar" {
+		err = utils.Untar(f, uploadTargetPath)
 		if err != nil {
-			log.Printf("Failed to make dir for the target upload path: %+v\n", err)
+			log.Printf("Failed to untar file: %s, error: %+v", fh.Filename, err)
 			return
 		}
+	} else {
+		err = utils.CopyFile(f, filepath.Join(uploadTargetPath, fh.Filename), 0755)
+		if err != nil {
+			log.Printf("Failed to write source to target: %+v\n", err)
+		}
 	}
-	targetUploadedFile := filepath.Join(uploadTargetPath, fh.Filename)
-	targetFile, err := os.OpenFile(targetUploadedFile, os.O_CREATE|os.O_WRONLY, 0755)
-	if err != nil {
-		log.Printf("Failed to create target uploaded: %+v\n", err)
-		return
-	}
-	_, err = io.Copy(targetFile, f)
-	if err != nil {
-		log.Printf("Failed to write source to target: %+v\n", err)
-		return
-	}
-	resp.Write([]byte(targetUploadedFile))
 }
 
 func interceptActionByURL(handler http.Handler, method string, urlList []string, action func(resp http.ResponseWriter, req *http.Request, body []byte)) http.Handler {
