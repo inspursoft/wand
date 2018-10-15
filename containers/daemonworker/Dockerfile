@@ -2,10 +2,10 @@ FROM golang:1.9.6
 
 MAINTAINER  wangkun_lc@inspur.com
 
-COPY src/daemonworker /go/src/devopssuite/src/daemonworker
-COPY src/vendor /go/src/devopssuite/vendor
+COPY src/daemonworker /go/src/github.com/inspursoft/wand/src/daemonworker
+COPY src/vendor /go/src/github.com/inspursoft/wand/src/vendor
 
-WORKDIR /go/src/devopssuite/src/daemonworker
+WORKDIR /go/src/github.com/inspursoft/wand/src/daemonworker
 
 RUN go build -v -a -o /go/bin/daemonworker && \
     chmod u+x /go/bin/daemonworker && \
