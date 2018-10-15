@@ -7,7 +7,7 @@ services:
     image: devops_log:dev
     restart: always
     volumes:
-      - /Users/wangkun/var/log/devops/:/var/log/docker/
+      - /var/log/devops/:/var/log/docker/
     networks:
       - devops
     ports:
@@ -20,7 +20,7 @@ services:
     restart: always
     volumes:
       - ./config/gogits/conf/app.ini:/tmp/conf/app.ini
-      - /Users/wangkun/data/devops/gogits:/data:rw
+      - /data/devops/gogits:/data:rw
     networks:
       - devops  
     depends_on:
@@ -39,7 +39,7 @@ services:
     networks:
       - devops
     volumes:
-      - /Users/wangkun/data/devops/jenkins_home:/var/jenkins_home
+      - /data/devops/jenkins_home:/var/jenkins_home
     env_file:
       - config/jenkins/env
     ports:
@@ -60,11 +60,11 @@ services:
     image: devops_daemonworker:dev
     restart: always
     volumes:
-      - /Users/wangkun/data/devops/data:/data
+      - /data/devops/data:/data
       - ./config/daemonworker/config.ini:/root/config.ini
       - ./config/daemonworker/kvm:/root/kvm
       - ./config/daemonworker/kvmregistry:/root/kvmregistry
-      - /Users/wangkun/data/devops/website:/root/website
+      - /data/devops/website:/root/website
     networks:
       - devops
     links:
@@ -86,7 +86,7 @@ services:
     restart: always
     volumes:
       - ./config/proxy/nginx.conf:/etc/nginx/nginx.conf:z
-      - /Users/wangkun/data/devops/website:/data/website
+      - /data/devops/website:/data/website
     ports: 
       - 10088:80
     links:
