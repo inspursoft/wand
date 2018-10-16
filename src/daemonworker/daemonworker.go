@@ -29,27 +29,33 @@ var jsonHeader = http.Header{
 	"content-type": []string{"application/json"},
 }
 
+func rendStatus(resp http.ResponseWriter, statusCode int, message string) {
+	log.Printf("%s", message)
+	resp.WriteHeader(statusCode)
+	resp.Write([]byte(message))
+}
+
 func updateConfig(resp http.ResponseWriter, req *http.Request) {
 	groupName := req.FormValue("group_name")
 	username := req.FormValue("username")
 	if strings.TrimSpace(groupName) == "" || strings.TrimSpace(username) == "" {
-		log.Println("No group name or username provided.")
+		rendStatus(resp, http.StatusBadRequest, fmt.Sprintf("No group name or username provided."))
 		return
 	}
 	var conf models.Config
 	data, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		log.Printf("Failed ot read from request body: %+v\n", err)
+		rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed ot read from request body: %+v\n", err))
 		return
 	}
 	err = json.Unmarshal(data, &conf)
 	if err != nil {
-		log.Printf("Failed to unmarshal request body: %+v\n", err)
+		rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to unmarshal request body: %+v\n", err))
 		return
 	}
 	err = dao.NewBuildConfig(groupName, username).AddOrUpdateBuildConfig(conf.ConfigKey, conf.ConfigValue)
 	if err != nil {
-		log.Printf("Failed to add or update configure: %+v\n", err)
+		rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to add or update configure: %+v\n", err))
 		return
 	}
 }
@@ -58,7 +64,7 @@ func fetchConfigs(resp http.ResponseWriter, req *http.Request) {
 	repoName := req.FormValue("repo_name")
 	username := req.FormValue("username")
 	if strings.TrimSpace(repoName) == "" || strings.TrimSpace(username) == "" {
-		log.Println("No repo name or username provided.")
+		rendStatus(resp, http.StatusBadRequest, fmt.Sprintf("No repo name or username provided."))
 		return
 	}
 	configs := dao.NewBuildConfig(repoName, username).GetBuildConfigs()
@@ -76,30 +82,30 @@ func uploadResource(resp http.ResponseWriter, req *http.Request) {
 	fullName := req.FormValue("full_name")
 	buildNumber := req.FormValue("build_number")
 	if strings.TrimSpace(fullName) == "" || strings.TrimSpace(buildNumber) == "" {
-		log.Println("No repo full name or build number provided.")
+		rendStatus(resp, http.StatusBadRequest, fmt.Sprintf("No repo full name or build number provided."))
 		return
 	}
 	f, fh, err := req.FormFile("upload")
 	if err != nil {
-		log.Printf("Failed to resolve uploaded file: %+v\n", err)
+		rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to resolve uploaded file: %+v\n", err))
 		return
 	}
 	uploadTargetPath := filepath.Join(uploadResourcePath, fullName, buildNumber)
 	err = utils.CheckFilePath(uploadTargetPath)
 	if err != nil {
-		log.Printf("Failed to mkdir: %s, error: %+v", uploadTargetPath, err)
+		rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to mkdir: %s, error: %+v", uploadTargetPath, err))
 		return
 	}
 	if ext := filepath.Ext(fh.Filename); ext == ".tar" {
 		err = utils.Untar(f, uploadTargetPath)
 		if err != nil {
-			log.Printf("Failed to untar file: %s, error: %+v", fh.Filename, err)
+			rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to untar file: %s, error: %+v", fh.Filename, err))
 			return
 		}
 	} else {
 		err = utils.CopyFile(f, filepath.Join(uploadTargetPath, fh.Filename), 0755)
 		if err != nil {
-			log.Printf("Failed to write source to target: %+v\n", err)
+			rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to write source to target: %+v\n", err))
 		}
 	}
 }
