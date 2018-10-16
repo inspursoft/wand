@@ -2,6 +2,7 @@ package dao
 
 import (
 	"log"
+	"time"
 
 	"github.com/inspursoft/wand/src/daemonworker/models"
 )
@@ -125,5 +126,6 @@ func (bc *buildConfig) Update() {
 	bc.AddOrUpdateBuildConfig("comment_url", bc.Payload.CommentURL)
 	bc.AddOrUpdateBuildConfig("last_coverage", "\""+bc.Payload.LastCoverage+"\"")
 	bc.AddOrUpdateBuildConfig("access_token", bc.Payload.AccessToken)
+	bc.AddOrUpdateBuildConfig("date_time", time.Now().Format(time.RFC3339))
 
 }
