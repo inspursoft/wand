@@ -1,7 +1,9 @@
-// Copyright (C) 2014 Yasuhiro Matsumoto <mattn.jp@gmail.com>.
+// Copyright (C) 2018 The Go-SQLite3 Authors.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
+
+// +build cgo
 
 package sqlite3
 
@@ -78,7 +80,7 @@ func (b *SQLiteBackup) Close() error {
 	b.b = nil
 	runtime.SetFinalizer(b, nil)
 
-	if ret != 0 {
+	if ret != C.SQLITE_OK {
 		return Error{Code: ErrNo(ret)}
 	}
 	return nil

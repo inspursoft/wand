@@ -36,8 +36,14 @@ func (bc *buildConfig) SetPayload(payload *models.CustomWebhookPayload) *buildCo
 	} else {
 		log.Printf("Failed to get user access with username: %s\n", bc.Username)
 	}
-	payload.Affinity = bc.GetBuildConfigByKey("affinity").ConfigVal
-	payload.LastCoverage = bc.GetBuildConfigByKey("last_coverage").ConfigVal
+	affinity := bc.GetBuildConfigByKey("affinity")
+	if affinity != nil {
+		payload.Affinity = affinity.ConfigVal
+	}
+	lastCoverage := bc.GetBuildConfigByKey("last_coverage")
+	if lastCoverage != nil {
+		payload.LastCoverage = lastCoverage.ConfigVal
+	}
 	collaborator := GetUserAccess(payload.Collaborator)
 	if collaborator != nil {
 		payload.AccessToken = collaborator.AccessToken
@@ -83,7 +89,7 @@ func (bc *buildConfig) GetBuildConfigs() (configs []buildConfig) {
 	return
 }
 
-func (bc *buildConfig) GetBuildConfigByKey(key string) (config buildConfig) {
+func (bc *buildConfig) GetBuildConfigByKey(key string) (config *buildConfig) {
 	rows, err := GetDBConn().Query(
 		`select config_key, config_val from build_config where group_name = ? and username = ? and config_key = ?;`, bc.GroupName, bc.Username, key)
 	if err != nil {
@@ -98,7 +104,7 @@ func (bc *buildConfig) GetBuildConfigByKey(key string) (config buildConfig) {
 		if err != nil {
 			log.Printf("Failed to gather row: %+v\n", err)
 		}
-		config = buildConfig{
+		config = &buildConfig{
 			ConfigKey: key,
 			ConfigVal: val,
 		}
@@ -124,8 +130,8 @@ func (bc *buildConfig) Update() {
 	bc.AddOrUpdateBuildConfig("head_repo_html_url", bc.Payload.HeadRepo.HTMLURL)
 	bc.AddOrUpdateBuildConfig("html_url", bc.Payload.HTMLURL)
 	bc.AddOrUpdateBuildConfig("comment_url", bc.Payload.CommentURL)
-	bc.AddOrUpdateBuildConfig("last_coverage", "\""+bc.Payload.LastCoverage+"\"")
+	bc.AddOrUpdateBuildConfig("last_coverage", bc.Payload.LastCoverage)
 	bc.AddOrUpdateBuildConfig("access_token", bc.Payload.AccessToken)
 	bc.AddOrUpdateBuildConfig("date_time", time.Now().Format(time.RFC3339))
-
+	bc.AddOrUpdateBuildConfig("commit_id", bc.Payload.CommitID)
 }

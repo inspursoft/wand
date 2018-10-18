@@ -1,7 +1,9 @@
-// Copyright (C) 2014 Yasuhiro Matsumoto <mattn.jp@gmail.com>.
+// Copyright (C) 2018 The Go-SQLite3 Authors.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
+
+// +build cgo
 
 package sqlite3
 
@@ -16,6 +18,7 @@ package sqlite3
 #else
 #include <sqlite3.h>
 #endif
+
 #include <stdlib.h>
 
 void _sqlite3_result_text(sqlite3_context* ctx, const char* s);
@@ -97,7 +100,7 @@ func newHandle(db *SQLiteConn, v interface{}) uintptr {
 	return i
 }
 
-func lookupHandle(handle uintptr) interface{} {
+func lookupHandleVal(handle uintptr) handleVal {
 	handleLock.Lock()
 	defer handleLock.Unlock()
 	r, ok := handleVals[handle]
@@ -108,7 +111,11 @@ func lookupHandle(handle uintptr) interface{} {
 			panic("invalid handle")
 		}
 	}
-	return r.val
+	return r
+}
+
+func lookupHandle(handle uintptr) interface{} {
+	return lookupHandleVal(handle).val
 }
 
 func deleteHandles(db *SQLiteConn) {

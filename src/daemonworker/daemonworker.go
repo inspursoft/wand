@@ -35,17 +35,17 @@ func rendStatus(resp http.ResponseWriter, statusCode int, message string) {
 	resp.Write([]byte(message))
 }
 
-func updateConfig(resp http.ResponseWriter, req *http.Request) {
+func addOrUpdateConfig(resp http.ResponseWriter, req *http.Request) {
 	groupName := req.FormValue("group_name")
 	username := req.FormValue("username")
 	if strings.TrimSpace(groupName) == "" || strings.TrimSpace(username) == "" {
-		rendStatus(resp, http.StatusBadRequest, fmt.Sprintf("No group name or username provided."))
+		rendStatus(resp, http.StatusBadRequest, fmt.Sprintf("No group name or username provided.\n"))
 		return
 	}
 	var conf models.Config
 	data, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed ot read from request body: %+v\n", err))
+		rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to read from request body: %+v\n", err))
 		return
 	}
 	err = json.Unmarshal(data, &conf)
@@ -64,7 +64,7 @@ func fetchConfigs(resp http.ResponseWriter, req *http.Request) {
 	repoName := req.FormValue("repo_name")
 	username := req.FormValue("username")
 	if strings.TrimSpace(repoName) == "" || strings.TrimSpace(username) == "" {
-		rendStatus(resp, http.StatusBadRequest, fmt.Sprintf("No repo name or username provided."))
+		rendStatus(resp, http.StatusBadRequest, fmt.Sprintf("No repo name or username provided.\n"))
 		return
 	}
 	configs := dao.NewBuildConfig(repoName, username).GetBuildConfigs()
@@ -78,11 +78,69 @@ func fetchConfigs(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func getConfig(resp http.ResponseWriter, req *http.Request) {
+	groupName := req.FormValue("group_name")
+	username := req.FormValue("username")
+	configKey := req.FormValue("config_key")
+	if strings.TrimSpace(groupName) == "" || strings.TrimSpace(username) == "" || strings.TrimSpace(configKey) == "" {
+		rendStatus(resp, http.StatusBadRequest, fmt.Sprintf("No group name, username or config key provided.\n"))
+		return
+	}
+	config := dao.NewBuildConfig(groupName, username).GetBuildConfigByKey(configKey)
+	if config == nil {
+		rendStatus(resp, http.StatusNotFound, fmt.Sprintf("No config found with key: %s\n", configKey))
+		return
+	}
+	resp.Write([]byte(config.ConfigVal))
+}
+
+func addOrUpdateCommitReport(resp http.ResponseWriter, req *http.Request) {
+	var commitReport models.CommitReport
+	data, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to read from request body: %+v\n", err))
+		return
+	}
+	err = json.Unmarshal(data, &commitReport)
+	if err != nil {
+		rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to unmarshal request body: %+v\n", err))
+		return
+	}
+	err = dao.AddOrUpdateCommitReport(commitReport)
+	if err != nil {
+		rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to add or update commit report: %+v\n", err))
+	}
+}
+
+func resolveCommitReport(resp http.ResponseWriter, req *http.Request) {
+	commitID := req.FormValue("commit_id")
+	if strings.TrimSpace(commitID) == "" {
+		rendStatus(resp, http.StatusBadRequest, fmt.Sprintln("No commit ID provided."))
+		return
+	}
+	commitReport := dao.GetCommitReport(commitID)
+	if commitReport == nil {
+		utils.DrawText(resp, "Ongoing")
+		return
+	}
+	if strings.Index(commitReport.Report, "|") == -1 {
+		utils.DrawText(resp, "-")
+		return
+	}
+	parts := strings.Split(commitReport.Report, "|")
+	target := req.FormValue("target")
+	if target == "report" {
+		utils.DrawText(resp, parts[0])
+	} else {
+		http.Redirect(resp, req, parts[1], http.StatusSeeOther)
+	}
+}
+
 func uploadResource(resp http.ResponseWriter, req *http.Request) {
 	fullName := req.FormValue("full_name")
 	buildNumber := req.FormValue("build_number")
 	if strings.TrimSpace(fullName) == "" || strings.TrimSpace(buildNumber) == "" {
-		rendStatus(resp, http.StatusBadRequest, fmt.Sprintf("No repo full name or build number provided."))
+		rendStatus(resp, http.StatusBadRequest, fmt.Sprintln("No repo full name or build number provided."))
 		return
 	}
 	f, fh, err := req.FormFile("upload")
@@ -93,13 +151,13 @@ func uploadResource(resp http.ResponseWriter, req *http.Request) {
 	uploadTargetPath := filepath.Join(uploadResourcePath, fullName, buildNumber)
 	err = utils.CheckFilePath(uploadTargetPath)
 	if err != nil {
-		rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to mkdir: %s, error: %+v", uploadTargetPath, err))
+		rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to mkdir: %s, error: %+v\n", uploadTargetPath, err))
 		return
 	}
 	if ext := filepath.Ext(fh.Filename); ext == ".tar" {
 		err = utils.Untar(f, uploadTargetPath)
 		if err != nil {
-			rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to untar file: %s, error: %+v", fh.Filename, err))
+			rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to untar file: %s, error: %+v\n", fh.Filename, err))
 			return
 		}
 	} else {
@@ -112,14 +170,21 @@ func uploadResource(resp http.ResponseWriter, req *http.Request) {
 
 func interceptActionByURL(handler http.Handler, method string, urlList []string, action func(resp http.ResponseWriter, req *http.Request, body []byte)) http.Handler {
 	return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-		if req.URL.Path == "/config" {
+		if req.URL.Path == "/commit-report" {
 			switch req.Method {
 			case http.MethodGet:
+				resolveCommitReport(resp, req)
+			case http.MethodPost:
+				addOrUpdateCommitReport(resp, req)
+			}
+		} else if req.URL.Path == "/configs" {
+			switch req.Method {
+			case http.MethodHead:
+				getConfig(resp, req)
+			case http.MethodGet:
 				fetchConfigs(resp, req)
-			case http.MethodPut:
-				updateConfig(resp, req)
-			default:
-				log.Printf("Unsupported method for this request: %s\n", req.URL.Path)
+			case http.MethodPost:
+				addOrUpdateConfig(resp, req)
 			}
 		} else if req.Method == http.MethodPost && req.URL.Path == "/upload" {
 			uploadResource(resp, req)
@@ -162,7 +227,7 @@ func main() {
 		kvmToolkitsPath, kvmRegistrySize, kvmRegistryPort)
 
 	registryURL := fmt.Sprintf("http://%s:%s", jenkinsNodeIP, kvmRegistryPort)
-	configURL := fmt.Sprintf("%s/config", gogitsBaseURL)
+	configURL := fmt.Sprintf("%s/configs", gogitsBaseURL)
 	jenkinsHandler := jenkins.NewJenkinsHandler(jenkinsBaseURL, registryURL, configURL)
 	err = jenkinsHandler.CreateIgnitorJob()
 	if err != nil {

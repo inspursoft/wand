@@ -33,6 +33,7 @@ type CustomWebhookPayload struct {
 	LastCoverage string     `json:"last_coverage"`
 	Collaborator string     `json:"collaborator"`
 	AccessToken  string     `json:"access_token"`
+	CommitID     string     `json:"commit_id"`
 }
 
 func (c *CustomWebhookPayload) AdaptToCustom(event string, payload []byte) (trigger bool, err error) {
@@ -73,6 +74,7 @@ func (c *CustomWebhookPayload) fromPushPayload(payload []byte) (err error) {
 	c.HeadRepo.Branch = "-"
 	c.HTMLURL = push.Repo.HTMLURL
 	c.CommentURL = "-"
+	c.CommitID = push.After[:10]
 	c.Collaborator = push.Repo.Owner.UserName
 	return
 }
@@ -95,6 +97,7 @@ func (c *CustomWebhookPayload) fromPullRequestPayload(payload []byte) (err error
 	c.HeadRepo.Branch = pullRequest.PullRequest.HeadBranch
 	c.HTMLURL = pullRequest.PullRequest.HTMLURL
 	c.CommentURL = fmt.Sprintf("%s/repos/%s/issues/%d/comments", c.APIURL, pullRequest.Repository.FullName, pullRequest.Index)
+	c.CommitID = "-"
 	c.Collaborator = pullRequest.PullRequest.HeadRepo.Owner.UserName
 	return
 }

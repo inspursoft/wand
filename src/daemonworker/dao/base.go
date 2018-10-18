@@ -20,7 +20,10 @@ func InitDB() (err error) {
 		(group_name string, username string, config_key text, config_val text,
 			primary key('group_name', 'username', 'config_key'));
 		create table if not exists user_access
-		 (id integer primary key autoincrement, username text unique, access_token text, is_org integer);`)
+		 (id integer primary key autoincrement, username text unique, access_token text, is_org integer);
+		create table if not exists commit_report
+		 (commit_id string, report string, primary key('commit_id'));
+		`)
 	if err != nil {
 		log.Printf("Failed to create table: %+v\n", err)
 		return

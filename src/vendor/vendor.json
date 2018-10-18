@@ -9,10 +9,10 @@
 			"revisionTime": "2018-04-28T03:00:07Z"
 		},
 		{
-			"checksumSHA1": "tTx90HHLD8waQ+mlpd7kRzp9kyY=",
+			"checksumSHA1": "98A7ubzXyEPJVD7Mx7CeE8rsci4=",
 			"path": "github.com/mattn/go-sqlite3",
-			"revision": "b3511bfdd742af558b54eb6160aca9446d762a19",
-			"revisionTime": "2018-07-18T00:29:43Z"
+			"revision": "c67b489f7e8e10b993944d4ecef084df2db3ec8e",
+			"revisionTime": "2018-10-15T13:44:34Z"
 		},
 		{
 			"checksumSHA1": "zYUTpQy17AUevrJzenxGCyFQgkQ=",
@@ -61,7 +61,25 @@
 			"path": "golang.org/x/crypto/ssh",
 			"revision": "56440b844dfe139a8ac053f4ecac0b20b79058f4",
 			"revisionTime": "2018-08-02T22:11:18Z"
+		},
+		{
+			"checksumSHA1": "CQYQ8wELyxPMRYOTDLELVtude/M=",
+			"path": "golang.org/x/image/font",
+			"revision": "991ec62608f3c0da01d400756917825d1e2fd528",
+			"revisionTime": "2018-09-19T11:48:13Z"
+		},
+		{
+			"checksumSHA1": "iV2FonJPeLV+iF4JHS3TRRXegF4=",
+			"path": "golang.org/x/image/font/basicfont",
+			"revision": "991ec62608f3c0da01d400756917825d1e2fd528",
+			"revisionTime": "2018-09-19T11:48:13Z"
+		},
+		{
+			"checksumSHA1": "euzvwlMLxyD0hwc+raoVsDLv6j4=",
+			"path": "golang.org/x/image/math/fixed",
+			"revision": "991ec62608f3c0da01d400756917825d1e2fd528",
+			"revisionTime": "2018-09-19T11:48:13Z"
 		}
 	],
-	"rootPath": "devopssuite/src"
+	"rootPath": "github.com/inspursoft/wand/src"
 }
