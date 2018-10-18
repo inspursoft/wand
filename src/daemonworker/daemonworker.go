@@ -120,11 +120,11 @@ func resolveCommitReport(resp http.ResponseWriter, req *http.Request) {
 	}
 	commitReport := dao.GetCommitReport(commitID)
 	if commitReport == nil {
-		utils.DrawText(resp, "Ongoing")
+		utils.DrawText(resp, "-")
 		return
 	}
 	if strings.Index(commitReport.Report, "|") == -1 {
-		utils.DrawText(resp, "-")
+		utils.DrawText(resp, "Ongoing")
 		return
 	}
 	parts := strings.Split(commitReport.Report, "|")
