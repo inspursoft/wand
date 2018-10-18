@@ -25,7 +25,7 @@ func (bc *buildConfig) SetPayload(payload *models.CustomWebhookPayload) *buildCo
 	if userAccess != nil {
 		if userAccess.IsOrg == 0 {
 			conf := bc.GetBuildConfigByKey("group_name")
-			if conf.ConfigVal == "" {
+			if conf == nil || conf.ConfigVal == "" {
 				bc.GroupName = bc.Username + "_" + bc.GroupName
 				payload.RepoName = bc.GroupName
 			} else {
