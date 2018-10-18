@@ -66,10 +66,8 @@ pipelineJob(job_name) {
     scanQueueFor(&apos;ALL&apos;)
   }
   parameters {
-    stringParam(&quot;jenkins_master_url&quot;, &quot;$jenkins_master_url&quot;, &quot;Set Jenkins master URL.&quot;)
-    stringParam(&quot;kvm_registry_url&quot;, &quot;$kvm_registry_url&quot;, &quot;Set KVM registry URL.&quot;)
-    stringParam(&quot;config_url&quot;, &quot;$config_url&quot;, &quot;Set config URL.&quot;)
     stringParam(&quot;node_name&quot;, &quot;&quot;, &quot;Set node name.&quot;)
+    stringParam(&quot;config_url&quot;, &quot;$config_url&quot;, &quot;Set config URL.&quot;)
     stringParam(&quot;group_name&quot;, &quot;$job_name&quot;, &quot;Set group name.&quot;)
     stringParam(&quot;username&quot;, &quot;&quot;, &quot;Set repo&apos;s username.&quot;)
   }
@@ -92,7 +90,7 @@ node(node_name) {
          curl &quot;${config_url}?repo_name=${group_name}&amp;username=${username}&quot; -o /root/env.cfg &amp;&amp; source /root/env.cfg
          curl -X PUT &quot;${kvm_registry_url}/update-build?kvm_name=${NODE_NAME}&amp;job_name=${group_name}&amp;build_id=${BUILD_NUMBER}&quot;
          git clone --single-branch -b ${base_repo_branch} ${base_repo_clone_url} ${WORKSPACE}
-         travis_yml_script.rb . workspace=${WORKSPACE}
+         travis_yml_script.rb . &quot;workspace=${WORKSPACE};build_number=${BUILD_NUMBER}&quot;
       \&apos;\&apos;\&apos;
     }
   } finally {
