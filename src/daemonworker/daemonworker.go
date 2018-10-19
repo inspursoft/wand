@@ -28,6 +28,7 @@ var uploadResourcePath = "/root/website"
 var jsonHeader = http.Header{
 	"content-type": []string{"application/json"},
 }
+var cached *models.CachedReport
 
 func rendStatus(resp http.ResponseWriter, statusCode int, message string) {
 	log.Printf("%s", message)
@@ -109,7 +110,9 @@ func addOrUpdateCommitReport(resp http.ResponseWriter, req *http.Request) {
 	err = dao.AddOrUpdateCommitReport(commitReport)
 	if err != nil {
 		rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to add or update commit report: %+v\n", err))
+		return
 	}
+	cached.Add(&commitReport)
 }
 
 func resolveCommitReport(resp http.ResponseWriter, req *http.Request) {
@@ -118,19 +121,22 @@ func resolveCommitReport(resp http.ResponseWriter, req *http.Request) {
 		rendStatus(resp, http.StatusBadRequest, fmt.Sprintln("No commit ID provided."))
 		return
 	}
-	commitReport := dao.GetCommitReport(commitID)
-	if commitReport == nil {
-		utils.DrawText(resp, "-")
+	commitReport, found := cached.Get(commitID)
+	if !found {
+		log.Printf("No found commit report with commit ID: %s, will retrieving from DB ...\n", commitID)
+		commitReport = dao.GetCommitReport(commitID)
+		cached.Add(commitReport)
+	}
+	if commitReport.CommitID == "" {
 		return
 	}
 	if strings.Index(commitReport.Report, "|") == -1 {
-		utils.DrawText(resp, "Ongoing")
 		return
 	}
 	parts := strings.Split(commitReport.Report, "|")
 	target := req.FormValue("target")
 	if target == "report" {
-		utils.DrawText(resp, parts[0])
+		utils.DrawTag(resp, parts[0])
 	} else {
 		http.Redirect(resp, req, parts[1], http.StatusSeeOther)
 	}
@@ -177,10 +183,10 @@ func interceptActionByURL(handler http.Handler, method string, urlList []string,
 			case http.MethodPost:
 				addOrUpdateCommitReport(resp, req)
 			}
+		} else if req.Method == http.MethodGet && req.URL.Path == "/config" {
+			getConfig(resp, req)
 		} else if req.URL.Path == "/configs" {
 			switch req.Method {
-			case http.MethodHead:
-				getConfig(resp, req)
 			case http.MethodGet:
 				fetchConfigs(resp, req)
 			case http.MethodPost:
@@ -239,6 +245,9 @@ func main() {
 		panic(fmt.Sprintf("Failed to parse Gogits URL, error: %+v\n", err))
 	}
 	reverseProxy := httputil.NewSingleHostReverseProxy(u)
+
+	cached = models.NewCachedReport()
+
 	chainedProxy := interceptActionByURL(reverseProxy, http.MethodPost, []string{"/user/sign_up"},
 		func(resp http.ResponseWriter, req *http.Request, data []byte) {
 			log.Printf("Intercepting user login: %s\n", req.URL.Path)

@@ -64,6 +64,7 @@ services:
       - ./config/daemonworker/config.ini:/root/config.ini
       - ./config/daemonworker/kvm:/root/kvm
       - ./config/daemonworker/kvmregistry:/root/kvmregistry
+      - ./config/daemonworker/static:/root/static
       - /data/devops/website:/root/website
     networks:
       - devops

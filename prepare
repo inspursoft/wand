@@ -121,6 +121,9 @@ render(os.path.join(templates_dir, "daemonworker", "config.ini"),
         kvm_registry_port=kvm_registry_port,
         kvm_toolkits_path=kvm_toolkits_path)
 
+if os.path.exists(os.path.join(daemonworker_config_dir, "static")):
+    shutil.rmtree(os.path.join(daemonworker_config_dir, "static"))
+shutil.copytree(os.path.join(templates_dir, "daemonworker", "static"), os.path.join(daemonworker_config_dir, "static"))
 
 if os.path.exists(os.path.join(daemonworker_config_dir, "kvm")):
     shutil.rmtree(os.path.join(daemonworker_config_dir, "kvm"))
