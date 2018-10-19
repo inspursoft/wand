@@ -125,6 +125,10 @@ func resolveCommitReport(resp http.ResponseWriter, req *http.Request) {
 	if !found {
 		log.Printf("No found commit report with commit ID: %s, will retrieving from DB ...\n", commitID)
 		commitReport = dao.GetCommitReport(commitID)
+		if commitReport == nil {
+			log.Printf("Initialized it with commit ID: %s, store into cache as no found from DB ...\n", commitID)
+			commitReport = &models.CommitReport{CommitID: commitID, Report: ""}
+		}
 		cached.Add(commitReport)
 	}
 	if commitReport.CommitID == "" {
