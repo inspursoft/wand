@@ -187,15 +187,15 @@ func interceptActionByURL(handler http.Handler, method string, urlList []string,
 			case http.MethodPost:
 				addOrUpdateCommitReport(resp, req)
 			}
-		} else if req.Method == http.MethodGet && req.URL.Path == "/config" {
-			getConfig(resp, req)
-		} else if req.URL.Path == "/configs" {
+		} else if req.URL.Path == "/config" {
 			switch req.Method {
 			case http.MethodGet:
-				fetchConfigs(resp, req)
-			case http.MethodPost:
+				getConfig(resp, req)
+			case http.MethodPut:
 				addOrUpdateConfig(resp, req)
 			}
+		} else if req.Method == http.MethodGet && req.URL.Path == "/configs" {
+			fetchConfigs(resp, req)
 		} else if req.Method == http.MethodPost && req.URL.Path == "/upload" {
 			uploadResource(resp, req)
 		} else {
