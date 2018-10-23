@@ -140,9 +140,27 @@ func resolveCommitReport(resp http.ResponseWriter, req *http.Request) {
 	parts := strings.Split(commitReport.Report, "|")
 	target := req.FormValue("target")
 	if target == "report" {
-		utils.DrawTag(resp, parts[0])
+		utils.DrawTag(resp, func(result string) string {
+			if result == "pass" {
+				return "correct.png"
+			}
+			return "wrong.png"
+		}(parts[0]))
 	} else {
 		http.Redirect(resp, req, parts[1], http.StatusSeeOther)
+	}
+}
+
+func resolveIcon(resp http.ResponseWriter, req *http.Request) {
+	iconName := req.FormValue("name")
+	if strings.TrimSpace(iconName) == "" {
+		rendStatus(resp, http.StatusBadRequest, fmt.Sprintln("No icon name provided."))
+		return
+	}
+	err := utils.DrawTag(resp, iconName)
+	if err != nil {
+		log.Printf("Failed to draw tag with icon name: %s\n", iconName)
+		utils.DrawText(resp, "N/A")
 	}
 }
 
@@ -198,6 +216,8 @@ func interceptActionByURL(handler http.Handler, method string, urlList []string,
 			fetchConfigs(resp, req)
 		} else if req.Method == http.MethodPost && req.URL.Path == "/upload" {
 			uploadResource(resp, req)
+		} else if req.Method == http.MethodGet && req.URL.Path == "/icon" {
+			resolveIcon(resp, req)
 		} else {
 			data, _ := ioutil.ReadAll(req.Body)
 			for _, urlStr := range urlList {

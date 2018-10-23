@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/png"
@@ -38,12 +39,12 @@ func DrawText(w io.Writer, label string) error {
 	return nil
 }
 
-func DrawTag(w io.Writer, description string) error {
-	targetTag := correctTag
-	if description != "pass" {
-		targetTag = wrongTag
+func DrawTag(w io.Writer, tagName string) error {
+	tagFilePath := filepath.Join(imagePath, tagName)
+	if _, err := os.Stat(tagFilePath); os.IsNotExist(err) {
+		return fmt.Errorf("no tag file: %s found", tagFilePath)
 	}
-	f, err := os.Open(filepath.Join(imagePath, targetTag))
+	f, err := os.Open(tagFilePath)
 	if err != nil {
 		return err
 	}
