@@ -54,6 +54,7 @@ func main() {
 	proxiedHandler := &proxies.ProxiedHandler{
 		GogitsBaseURL:    gogitsBaseURL,
 		JenkinsMasterURL: jenkinsMasterURL,
+		JenkinsNodeIP:    jenkinsNodeIP,
 		KVMRegistryURL:   kvmRegistryURL,
 		ConfigURL:        configURL,
 	}
