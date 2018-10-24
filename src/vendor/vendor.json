@@ -3,6 +3,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "FtCtcD/Ys18frKJyeZLzkPY6J8g=",
+			"path": "github.com/gorilla/mux",
+			"revision": "deb579d6e030503f430978ee229008b9bc912d40",
+			"revisionTime": "2018-10-12T15:31:51Z"
+		},
+		{
 			"checksumSHA1": "aaUR0FaTkm9HdCovPv3tecD71/s=",
 			"path": "github.com/kballard/go-shellquote",
 			"revision": "95032a82bc518f77982ea72343cc1ade730072f0",

@@ -8,6 +8,11 @@ import (
 	"github.com/inspursoft/wand/src/daemonworker/utils"
 )
 
+const (
+	kvmToolsPath    = "/root/kvm"
+	kvmRegistryPath = "/root/kvmregistry"
+)
+
 func prepareKVMHost(nodeIP, nodeSSHPort, username, password, kvmToolkitsPath, kvmRegistrySize, kvmRegistryPort string) error {
 	sshPort, _ := strconv.Atoi(nodeSSHPort)
 	sshHandler, err := utils.NewSecureShell(nodeIP, sshPort, username, password)
