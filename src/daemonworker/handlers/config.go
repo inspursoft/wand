@@ -38,10 +38,10 @@ func (c *Handler) AddOrUpdateConfig(resp http.ResponseWriter, req *http.Request)
 }
 
 func (c *Handler) FetchConfigs(resp http.ResponseWriter, req *http.Request) {
-	repoName := req.FormValue("repo_name")
+	repoName := req.FormValue("group_name")
 	username := req.FormValue("username")
 	if strings.TrimSpace(repoName) == "" || strings.TrimSpace(username) == "" {
-		rendStatus(resp, http.StatusBadRequest, fmt.Sprintf("No repo name or username provided.\n"))
+		rendStatus(resp, http.StatusBadRequest, fmt.Sprintf("No group name or username provided.\n"))
 		return
 	}
 	configs := dao.NewBuildConfig(repoName, username).GetBuildConfigs()
@@ -49,7 +49,7 @@ func (c *Handler) FetchConfigs(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("content-disposition", "attachment;filename=env.cfg")
 		w := bufio.NewWriter(resp)
 		for _, c := range configs {
-			w.WriteString(fmt.Sprintf("export %s=%s\n", c.ConfigKey, c.ConfigVal))
+			w.WriteString(fmt.Sprintf("%s=%s\n", c.ConfigKey, c.ConfigVal))
 		}
 		w.Flush()
 	}

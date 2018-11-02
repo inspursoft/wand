@@ -115,10 +115,10 @@ def initKVM(jenkinsmasterurl, kvmname, jenkinsnodeip):
     addJenkinsNode(jenkinsmasterurl, usekvmname, jenkinsnodeip, hostport)
 
 def loadConfig(configurl, reponame, username):
-    resp = requests.get(configurl, params={'repo_name': reponame, 'username': username}, stream=True)
+    resp = requests.get(configurl, params={'group_name': reponame, 'username': username}, stream=True)
     config = {}
     for line in resp.content.split("\n"):
-        parts = line[7:].split("=") # export jenkins_master_url=http://localhost:10088
+        parts = line.split("=") 
         if len(parts) == 2:
             config[parts[0]] = parts[1]
     return config

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"path/filepath"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/inspursoft/wand/src/daemonworker/dao"
@@ -16,6 +18,36 @@ import (
 	"github.com/inspursoft/wand/src/daemonworker/utils"
 	_ "github.com/mattn/go-sqlite3"
 )
+
+const (
+	kvmToolsPath    = "/root/kvm"
+	kvmRegistryPath = "/root/kvmregistry"
+)
+
+func prepareKVMHost(nodeIP, nodeSSHPort, username, password, kvmToolkitsPath, kvmRegistrySize, kvmRegistryPort string) error {
+	sshPort, _ := strconv.Atoi(nodeSSHPort)
+	sshHandler, err := utils.NewSecureShell(nodeIP, sshPort, username, password)
+	if err != nil {
+		return err
+	}
+	kvmToolsNodePath := filepath.Join(kvmToolkitsPath, "kvm")
+	kvmRegistryNodePath := filepath.Join(kvmToolkitsPath, "kvmregistry")
+	err = sshHandler.ExecuteCommand(fmt.Sprintf("mkdir -p %s %s", kvmToolsNodePath, kvmRegistryNodePath))
+	if err != nil {
+		return err
+	}
+	err = sshHandler.SecureCopy(kvmToolsPath, kvmToolsNodePath)
+	if err != nil {
+		return err
+	}
+	err = sshHandler.SecureCopy(kvmRegistryPath, kvmRegistryNodePath)
+	if err != nil {
+		return err
+	}
+	return sshHandler.ExecuteCommand(fmt.Sprintf(`
+		cd %s && chmod +x kvmregistry && nohup ./kvmregistry -size %s -port %s > kvmregistry.out 2>&1 &`,
+		kvmRegistryNodePath, kvmRegistrySize, kvmRegistryPort))
+}
 
 func main() {
 	config, err := utils.LoadConfig("/root/config.ini")
@@ -66,7 +98,7 @@ func main() {
 	router := mux.NewRouter()
 
 	handler := &handlers.Handler{Cache: models.NewCachedReport()}
-	commitReportRouter := router.PathPrefix("/commit-report").Subrouter()
+	commitReportRouter := router.Path("/commit-report").Subrouter()
 	commitReportRouter.Methods("GET").HandlerFunc(handler.ResolveCommitReport)
 	commitReportRouter.Methods("POST").HandlerFunc(handler.AddOrUpdateCommitReport)
 
