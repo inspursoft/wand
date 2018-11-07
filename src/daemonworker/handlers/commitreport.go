@@ -14,12 +14,12 @@ import (
 )
 
 func (c *Handler) AddOrUpdateCommitReport(resp http.ResponseWriter, req *http.Request) {
-	var commitReport models.CommitReport
 	data, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to read from request body: %+v\n", err))
 		return
 	}
+	var commitReport models.CommitReport
 	err = json.Unmarshal(data, &commitReport)
 	if err != nil {
 		rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to unmarshal request body: %+v\n", err))
@@ -30,7 +30,7 @@ func (c *Handler) AddOrUpdateCommitReport(resp http.ResponseWriter, req *http.Re
 		rendStatus(resp, http.StatusInternalServerError, fmt.Sprintf("Failed to add or update commit report: %+v\n", err))
 		return
 	}
-	c.Cache.Add(&commitReport)
+	c.Cache.Add(commitReport.ToCachedConfig())
 }
 
 func (c *Handler) ResolveCommitReport(resp http.ResponseWriter, req *http.Request) {
@@ -39,7 +39,8 @@ func (c *Handler) ResolveCommitReport(resp http.ResponseWriter, req *http.Reques
 		rendStatus(resp, http.StatusBadRequest, fmt.Sprintln("No commit ID provided."))
 		return
 	}
-	commitReport, found := c.Cache.Get(commitID)
+	config, found := c.Cache.Get(fmt.Sprintf("COMMITS_%s", commitID))
+	var commitReport *models.CommitReport
 	if !found {
 		log.Printf("No found commit report with commit ID: %s, will retrieving from DB ...\n", commitID)
 		commitReport = dao.GetCommitReport(commitID)
@@ -47,7 +48,9 @@ func (c *Handler) ResolveCommitReport(resp http.ResponseWriter, req *http.Reques
 			log.Printf("Initialized it with commit ID: %s, store into cache as no found from DB ...\n", commitID)
 			commitReport = &models.CommitReport{CommitID: commitID, Report: ""}
 		}
-		c.Cache.Add(commitReport)
+		c.Cache.Add(commitReport.ToCachedConfig())
+	} else {
+		commitReport = models.ToCommitReport(config)
 	}
 	if commitReport.CommitID == "" {
 		return

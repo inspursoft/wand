@@ -97,7 +97,7 @@ func main() {
 
 	router := mux.NewRouter()
 
-	handler := &handlers.Handler{Cache: models.NewCachedReport()}
+	handler := &handlers.Handler{Cache: models.NewCachedStore()}
 	commitReportRouter := router.Path("/commit-report").Subrouter()
 	commitReportRouter.Methods("GET").HandlerFunc(handler.ResolveCommitReport)
 	commitReportRouter.Methods("POST").HandlerFunc(handler.AddOrUpdateCommitReport)
@@ -105,6 +105,7 @@ func main() {
 	configRouter := router.Path("/config").Subrouter()
 	configRouter.Methods("GET").HandlerFunc(handler.GetConfig)
 	configRouter.Methods("PUT").HandlerFunc(handler.AddOrUpdateConfig)
+	configRouter.Methods("POST").HandlerFunc(handler.CacheConfig)
 
 	router.Path("/configs").Methods("GET").HandlerFunc(handler.FetchConfigs)
 	router.Path("/upload").Methods("POST").HandlerFunc(handler.UploadResource)

@@ -12,7 +12,7 @@ const (
 )
 
 type Handler struct {
-	Cache *models.CachedReport
+	Cache *models.CachedStore
 }
 
 func rendStatus(resp http.ResponseWriter, statusCode int, message string) {
