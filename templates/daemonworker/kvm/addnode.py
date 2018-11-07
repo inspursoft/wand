@@ -9,7 +9,7 @@ import requests
 basedir = os.path.dirname(os.path.realpath(__file__))
 credentialId = 'k-v-m-i-d'
 nodeUsername = 'root'
-nodePasswd = '123456a?'
+nodePasswd = 'BOARD123456a?'
 
 def createCredential(jenkinsmasterurl):
     para = "--data-urlencode"
