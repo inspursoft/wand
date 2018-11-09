@@ -58,7 +58,7 @@ func (c *Handler) FetchConfigs(resp http.ResponseWriter, req *http.Request) {
 			if strings.HasPrefix(cachedConfig.Key, "COMMITS_") || strings.Index(cachedConfig.Key, fmt.Sprintf("%s_%s_%s", groupName, username, serialID)) == -1 {
 				continue
 			}
-			w.WriteString(fmt.Sprintf("%s=%s\n", cachedConfig.Key[strings.LastIndex(cachedConfig.Key, "_")+1:], cachedConfig.Value))
+			w.WriteString(fmt.Sprintf("%s=%s\n", strings.SplitAfterN(cachedConfig.Key, "_", 4)[3], cachedConfig.Value))
 		}
 	} else {
 		resp.Header().Set("content-disposition", "attachment;filename=env.cfg")
