@@ -26,4 +26,5 @@ RUN  sed -i 's/^root\:x\:0\:/root\:x\:0\:root\,jenkins/' /etc/group \
       && chmod u+x /usr/share/jenkins/pythonenv.sh \
       && chmod u+x /usr/local/bin/jenkins.sh \
       && chmod u+x /usr/share/jenkins/init.sh \
+      && /usr/share/jenkins/pythonenv.sh \
       && /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
