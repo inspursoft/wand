@@ -73,6 +73,7 @@ pipelineJob(job_name) {
 properties([
   parameters([
     string(defaultValue: &quot;&quot;, description: &quot;Set node name&quot;, name: &quot;node_name&quot;, trim: true),
+    string(defaultValue: &quot;$kvm_registry_url&quot;, description: &quot;Set KVM registry URL&quot;, name: &quot;kvm_registry_url&quot;, trim: true),
     string(defaultValue: &quot;$config_url&quot;, description: &quot;Set config URL&quot;, name: &quot;config_url&quot;, trim: true),
     string(defaultValue: &quot;&quot;, description: &quot;Set group name&quot;, name: &quot;group_name&quot;, trim: true),
     string(defaultValue: &quot;&quot;, description: &quot;Set repo\&apos;s username&quot;, name: &quot;username&quot;, trim: true)  
