@@ -83,7 +83,7 @@ node(node_name) {
   try {
     stage(&quot;Prepare and execute building ...&quot;) {
       sh \&apos;\&apos;\&apos;
-        curl &quot;${config_url}?repo_name=${group_name}&amp;username=${username}&quot; -o /root/env.cfg &amp;&amp; source /root/env.cfg
+        curl &quot;${config_url}?group_name=${group_name}&amp;username=${username}&quot; -o /root/env.cfg &amp;&amp; source /root/env.cfg
         curl -X PUT &quot;${kvm_registry_url}/update-build?kvm_name=${NODE_NAME}&amp;job_name=${group_name}&amp;build_id=${BUILD_NUMBER}&quot;
         git clone --single-branch -b ${base_repo_branch} ${base_repo_clone_url} ${WORKSPACE}
         travis_yml_script.rb . &quot;workspace=${WORKSPACE};build_number=${BUILD_NUMBER}&quot;
