@@ -83,7 +83,7 @@ def addJenkinsNode(jenkinsmasterurl, nodename, jenkinsnodeip, hostport):
             server.create_node(
                 nodename,nodeDescription='Added node: %s' % nodename,
                 remoteFS='/data',
-                numExecutors=3,
+                numExecutors=1,
                 labels=nodename,
                 exclusive=False,
                 launcher=jenkins.LAUNCHER_SSH,
@@ -118,7 +118,7 @@ def loadConfig(configurl, reponame, username):
     resp = requests.get(configurl, params={'group_name': reponame, 'username': username}, stream=True)
     config = {}
     for line in resp.content.split("\n"):
-        parts = line.split("=") 
+        parts = line[7:].split("=") 
         if len(parts) == 2:
             config[parts[0]] = parts[1]
     return config
