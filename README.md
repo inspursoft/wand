@@ -4,7 +4,7 @@
 
 ## Introduction
 
-Wand provides quick and convenient experience for DevOps. By integrating two core components of DevOps for which Gogs and Jenkins, Wand can help you setup DevOps workflow automatically.
+Wand provides quick and convenient experience for DevOps. By integrating two core components of DevOps for which Gogs and Jenkins, Wand can help you setup DevOps workflow automatically!
 
 ## Features
 * Supports setup DevOps workflow with automation
